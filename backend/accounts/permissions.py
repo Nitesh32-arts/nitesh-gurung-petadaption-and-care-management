@@ -102,6 +102,26 @@ class IsVeterinarianOrAdopter(permissions.BasePermission):
         )
 
 
+class IsVeterinarianAdopterOrShelter(permissions.BasePermission):
+    """
+    Read access to medical records: veterinarian, adopter, or shelter (scoped by queryset).
+    """
+    message = "You must be a veterinarian, adopter, or shelter to view medical records."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(request.user, 'role', None)
+        role_lower = str(role).lower() if role else ''
+        if role_lower == 'shelter' or getattr(request.user, 'is_shelter', False):
+            return True
+        if role_lower == 'veterinarian':
+            return True
+        if role_lower == 'adopter':
+            return True
+        return False
+
+
 class IsVerifiedVeterinarian(permissions.BasePermission):
     """Veterinarian role and verification_status == approved. Use for create/edit medical records, reminders, etc."""
     message = "Account pending verification approval."

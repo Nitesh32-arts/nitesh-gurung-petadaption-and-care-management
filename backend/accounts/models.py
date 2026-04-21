@@ -1,5 +1,15 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager as DjangoUserManager
 from django.db import models
+
+
+class UserManager(DjangoUserManager):
+    """Ensure Django superusers are aligned with the custom role system."""
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        # Keep custom role in sync with Django's is_superuser/is_staff flags.
+        extra_fields.setdefault('role', 'admin')
+        return super().create_superuser(username, email=email, password=password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -99,6 +109,7 @@ class User(AbstractUser):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    objects = UserManager()
     
     class Meta:
         db_table = 'users'
